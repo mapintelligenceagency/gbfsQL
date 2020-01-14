@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "apollo-server": "^2.9.16",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "graphql": "^14.5.8",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.8"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "name": "gbfsQL",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^6.1.0"
+  }
+}
