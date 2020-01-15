@@ -25,39 +25,39 @@ class GBFS {
       providedFeeds.forEach((feed) => {
         this.feeds[feed.name] = feed.url;
         console.log(`Found ${feed.name} for ${this.serviceKey}`);
+        this.crawl(feed);
       });
-
-      await this.crawl();
     }
   }
 
-  async crawl() {
-    await Promise.all(Object.entries(this.feeds).map(async ([name, url]) => {
-      const feedResponse = await request(url, { json: true });
-      this.feedCache[name] = feedResponse;
-    }));
+  async crawl({ name, url }) {
+    const feedResponse = await request(url, { json: true });
+    this.feedCache[name] = feedResponse.data;
+    const ttl = parseInt(feedResponse.ttl, 10) * 1000;
+    setTimeout(() => this.crawl({ name, url }), ttl || 60000);
   }
 
   stations() {
-    const { stations } = this.feedCache[FEED.stationInformation].data;
+    const { stations } = this.feedCache[FEED.stationInformation];
     stations.forEach((s) => {
       // eslint-disable-next-line no-param-reassign
-      s.SERVICEKEY = this.serviceKey;
+      s.SERVICE = this;
     });
     return stations || [];
   }
 
   systemInformation() {
-    return this.feedCache[FEED.systemInformation].data;
+    return this.feedCache[FEED.systemInformation];
   }
 
   bikes() {
-    return this.feedCache[FEED.freeBikeStatus].data.bikes;
+    return this.feedCache[FEED.freeBikeStatus].bikes;
   }
 
   stationStatus(stationId) {
-    const allStatus = this.feedCache[FEED.stationStatus].data.stations;
-    const status = allStatus.find((s) => s.station_id === stationId);
+    const allStatus = this.feedCache[FEED.stationStatus].stations;
+    // eslint-disable-next-line eqeqeq
+    const status = allStatus.find((s) => s.station_id == stationId);
     return status || {};
   }
 }

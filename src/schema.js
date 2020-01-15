@@ -36,7 +36,6 @@ region_id: Int
 post_code: String
 rental_methods: [RentalMethod]
 capacity: Int
-currentStatus: StationStatus
 `;
 
 const stationStatusBody = `
@@ -68,6 +67,7 @@ const buildSystemInformation = (name) => `
 const buildStation = (name) => `
   type ${name}Station implements Station {
     ${stationBody}
+    currentStatus: ${name}StationStatus
   }
 `;
 
@@ -97,7 +97,7 @@ const buildQuery = (names) => `
 
 module.exports = (services) => {
   let dynamicString = '';
-  Object.values(services).forEach((gbfs) => {
+  services.forEach((gbfs) => {
     const name = gbfs.serviceKey;
     const feeds = Object.keys(gbfs.feeds);
 
@@ -117,7 +117,7 @@ module.exports = (services) => {
     });
     dynamicString += buildQueryBlock(name, feeds);
   });
-  dynamicString += buildQuery(Object.keys(services));
+  dynamicString += buildQuery(services.map((s) => s.serviceKey));
 
   const main = `
   enum RentalMethod {
@@ -133,6 +133,7 @@ module.exports = (services) => {
 
   interface Station {
     ${stationBody}
+    currentStatus: StationStatus
   }
 
   interface StationStatus {
