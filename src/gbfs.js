@@ -19,31 +19,40 @@ class GBFS {
   async load() {
     if (this.endpoint) {
       const gbfs = await request(this.endpoint, { json: true });
+      if (!gbfs) {
+        logger.error(`Request to ${this.endpoint} was not successful`);
+        process.exit(1);
+      }
       const providedFeeds = gbfs.data.en.feeds
         .filter((feed) => supportedFeeds.includes(feed.name));
 
       providedFeeds.forEach((feed) => {
         this.feeds[feed.name] = feed.url;
-        console.log(`Found ${feed.name} for ${this.serviceKey}`);
+        logger.info(`Found ${feed.name} for ${this.serviceKey}`);
         this.crawl(feed);
       });
+      if (providedFeeds.length === 0) {
+        logger.warning(`No services discovered for ${this.serviceKey}`);
+      }
     }
   }
 
   async crawl({ name, url }) {
-    const feedResponse = await request(url, { json: true });
-    this.feedCache[name] = feedResponse.data;
-    const ttl = parseInt(feedResponse.ttl, 10) * 1000;
-    setTimeout(() => this.crawl({ name, url }), ttl || 60000);
+    let ttl;
+    try {
+      const feedResponse = await request(url, { json: true });
+      this.feedCache[name] = feedResponse.data;
+      ttl = parseInt(feedResponse.ttl, 10) * 1000;
+      logger.info(`Fetched ${name} for ${this.serviceKey} at ${url}`);
+    } catch (error) {
+      logger.error(`Failed to fetch ${url}: %o`, error);
+    } finally {
+      setTimeout(() => this.crawl({ name, url }), ttl || 60000);
+    }
   }
 
   stations() {
-    const { stations } = this.feedCache[FEED.stationInformation];
-    stations.forEach((s) => {
-      // eslint-disable-next-line no-param-reassign
-      s.SERVICE = this;
-    });
-    return stations || [];
+    return this.feedCache[FEED.stationInformation].stations || [];
   }
 
   systemInformation() {
@@ -58,7 +67,7 @@ class GBFS {
     const allStatus = this.feedCache[FEED.stationStatus].stations;
     // eslint-disable-next-line eqeqeq
     const status = allStatus.find((s) => s.station_id == stationId);
-    return status || {};
+    return status || null;
   }
 }
 
