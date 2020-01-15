@@ -1,6 +1,12 @@
 const request = require('request-promise-native');
+const FEED = require('./feeds');
 
-const supportedFeeds = ['system_information', 'station_information', 'station_status'];
+const supportedFeeds = [
+  FEED.systemInformation,
+  FEED.stationInformation,
+  FEED.stationStatus,
+  FEED.freeBikeStatus,
+];
 
 class GBFS {
   constructor(serviceKey, endpoint) {
@@ -8,31 +14,32 @@ class GBFS {
     this.endpoint = endpoint;
     this.feeds = {};
     this.feedCache = {};
-    if (endpoint) {
-      request(endpoint, { json: true }).then((gbfs) => {
-        const providedFeeds = gbfs.data.en.feeds
-          .filter((feed) => supportedFeeds.includes(feed.name));
+  }
 
-        providedFeeds.forEach((feed) => {
-          this.feeds[feed.name] = feed.url;
-          console.log(`Found ${feed.name} for ${serviceKey}`);
-        });
-      }).then(() => {
-        this.crawl();
+  async load() {
+    if (this.endpoint) {
+      const gbfs = await request(this.endpoint, { json: true });
+      const providedFeeds = gbfs.data.en.feeds
+        .filter((feed) => supportedFeeds.includes(feed.name));
+
+      providedFeeds.forEach((feed) => {
+        this.feeds[feed.name] = feed.url;
+        console.log(`Found ${feed.name} for ${this.serviceKey}`);
       });
+
+      await this.crawl();
     }
   }
 
-  crawl() {
-    Object.entries(this.feeds).forEach(([name, url]) => {
-      request(url, { json: true }).then((feedResponse) => {
-        this.feedCache[name] = feedResponse;
-      });
-    });
+  async crawl() {
+    await Promise.all(Object.entries(this.feeds).map(async ([name, url]) => {
+      const feedResponse = await request(url, { json: true });
+      this.feedCache[name] = feedResponse;
+    }));
   }
 
   stations() {
-    const { stations } = this.feedCache.station_information.data;
+    const { stations } = this.feedCache[FEED.stationInformation].data;
     stations.forEach((s) => {
       // eslint-disable-next-line no-param-reassign
       s.SERVICEKEY = this.serviceKey;
@@ -41,11 +48,15 @@ class GBFS {
   }
 
   systemInformation() {
-    return this.feedCache.system_information.data;
+    return this.feedCache[FEED.systemInformation].data;
+  }
+
+  bikes() {
+    return this.feedCache[FEED.freeBikeStatus].data.bikes;
   }
 
   stationStatus(stationId) {
-    const allStatus = this.feedCache.station_status.data.stations;
+    const allStatus = this.feedCache[FEED.stationStatus].data.stations;
     const status = allStatus.find((s) => s.station_id === stationId);
     return status || {};
   }

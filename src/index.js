@@ -1,7 +1,6 @@
-const fs = require('fs');
-const path = require('path');
+const { ApolloServer, makeExecutableSchema } = require('apollo-server');
+const createSchema = require('./schema');
 
-const { ApolloServer } = require('apollo-server');
 const GBFS = require('./gbfs');
 
 const services = {
@@ -9,29 +8,42 @@ const services = {
   Voi: new GBFS('Voi', 'https://nitro.openvelo.org/aachen/voi/v1/gbfs.json'),
 };
 
-setInterval(() => {
-  Object.values(services).forEach((s) => s.crawl());
-}, 10000);
+const queryResolvers = Object.fromEntries(Object.entries(services)
+  .map(([serviceKey, gbfs]) => [serviceKey, () => ({
+    systemInformation: () => gbfs.systemInformation(),
+    stations: () => gbfs.stations(),
+    bikes: () => gbfs.bikes(),
+  }),
+  ]));
 
-const gqlServiceEnum = `enum Service { ${Object.keys(services).join(', ')} }\n`;
-const typeDefs = gqlServiceEnum + fs.readFileSync(path.join(__dirname, '../schemas/gbfs.graphql'), 'utf8');
 
+const promises = Object.values(services).map((s) => s.load());
 
-const resolvers = {
-  Query: {
-    stations: (_, { service }) => services[service].stations(),
-    systemInformation: (_, { service }) => services[service].systemInformation(),
-  },
-  Station: {
-    currentStatus: (station) => services[station.SERVICEKEY].stationStatus(station.station_id),
-  },
-};
+Promise.all(promises).then(() => {
+  const typeDefs = createSchema(services);
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-});
+  const resolvers = {
+    Query: queryResolvers,
+    Station: {
+      currentStatus: (station) => services[station.SERVICEKEY].stationStatus(station.station_id),
+    },
+  };
+  const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
+    resolverValidationOptions: {
+      requireResolversForResolveType: false,
+    },
+  });
+  const server = new ApolloServer({
+    schema,
+  });
 
-server.listen().then(({ url }) => {
-  console.log(`🚀 Server ready at ${url}`);
+  setInterval(() => {
+    Object.values(services).forEach((s) => s.crawl());
+  }, 10000);
+
+  server.listen().then(({ url }) => {
+    console.log(`🚀 Server ready at ${url}`);
+  });
 });
