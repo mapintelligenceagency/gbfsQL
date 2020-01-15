@@ -45,7 +45,7 @@ class GBFS {
       ttl = parseInt(feedResponse.ttl, 10) * 1000;
       logger.info(`Fetched ${name} for ${this.serviceKey} at ${url}`);
     } catch (error) {
-      logger.error(`Failed to fetch ${url}: %o`, error);
+      logger.error(error);
     } finally {
       setTimeout(() => this.crawl({ name, url }), ttl || 60000);
     }
