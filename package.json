@@ -13,7 +13,7 @@
     "start": "node src/index.js",
     "serve": "nodemon -- -v -s Velocity#https://nitro.openvelo.org/aachen/velocity/v1/gbfs.json | bunyan"
   },
-  "name": "gbfsQL",
+  "name": "gbfsql",
   "version": "1.0.0",
   "main": "src/index.js",
   "license": "MIT",
