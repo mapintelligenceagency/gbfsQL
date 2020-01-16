@@ -29,5 +29,4 @@ jobs:
           USERNAME: ${{ secrets.DOCKER_USERNAME }}
           PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           IMAGE_NAME: "mapintelligenceagency/gbfsql"
-          TAG_NAME: "gbfsql"
-          LATEST: "true"
+          TAG_NAME: "latest"
