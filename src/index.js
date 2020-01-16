@@ -38,7 +38,8 @@ const promises = services.map((s) => s.load());
 // Load all services to see which feeds are available
 Promise.all(promises).then(() => {
   const queryResolvers = Object.fromEntries(services
-    .map((gbfs) => [gbfs.serviceKey, gbfs.fullObject()]));
+    .map((gbfs) => [gbfs.serviceKey, () => gbfs.fullObject()]));
+
   const subscriptionResolvers = Object.fromEntries(
     services.map((gbfs) => [
       gbfs.serviceKey,
@@ -50,11 +51,17 @@ Promise.all(promises).then(() => {
     ]),
   );
 
-  const stationResolvers = Object.fromEntries(services.filter((s) => !!s.feeds[FEED.stationStatus])
-    .map((gbfs) => [`${gbfs.serviceKey}Station`, {
-      currentStatus: (station) => gbfs.stationStatus(station.station_id),
-    },
-    ]));
+  const stationResolvers = {};
+  services.filter((gbfs) => !!gbfs.feeds[FEED.stationInformation]).forEach((gbfs) => {
+    const stationName = `${gbfs.serviceKey}Station`;
+    stationResolvers[stationName] = {};
+    if (gbfs.feeds[FEED.stationInformation]) {
+      stationResolvers[stationName].currentStatus = (station) => gbfs.stationStatus(station.station_id);
+    }
+    if (gbfs.feeds[FEED.systemAlerts]) {
+      stationResolvers[stationName].currentSystemAlerts = (station) => gbfs.systemAlertForStation(station.station_id);
+    }
+  });
 
   const typeDefs = createSchema(services);
 

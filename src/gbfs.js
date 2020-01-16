@@ -6,6 +6,7 @@ const supportedFeeds = [
   FEED.stationInformation,
   FEED.stationStatus,
   FEED.freeBikeStatus,
+  FEED.systemAlerts,
 ];
 
 class GBFS {
@@ -70,6 +71,10 @@ class GBFS {
     return this.feedCache[FEED.freeBikeStatus].bikes;
   }
 
+  systemAlerts() {
+    return this.feedCache[FEED.systemAlerts].alerts;
+  }
+
   fullObject() {
     const object = {
       systemInformation: () => this.systemInformation(),
@@ -81,6 +86,11 @@ class GBFS {
     if (this.feeds[FEED.stationInformation]) {
       object.stations = () => this.stations();
     }
+
+    if (this.feeds[FEED.systemAlerts]) {
+      object.systemAlerts = () => this.systemAlerts();
+    }
+
     return object;
   }
 
@@ -89,6 +99,13 @@ class GBFS {
     // eslint-disable-next-line eqeqeq
     const status = allStatus.find((s) => s.station_id == stationId);
     return status || null;
+  }
+
+  systemAlertForStation(stationId) {
+    const allSystemAlerts = this.feedCache[FEED.systemAlerts].alerts;
+    // eslint-disable-next-line eqeqeq
+    const alerts = allSystemAlerts.filter((a) => a.station_ids.includes(stationId));
+    return alerts;
   }
 }
 

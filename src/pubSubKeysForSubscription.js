@@ -1,9 +1,10 @@
 const FEED = require('./feeds');
 
 const KeyToFeed = {
-  stations: [FEED.stationStatus, FEED.stationInformation],
+  stations: [FEED.stationStatus, FEED.stationInformation, FEED.systemAlerts],
   bikes: [FEED.freeBikeStatus],
   systemInformation: [FEED.systemInformation],
+  systemAlerts: [FEED.systemAlerts],
 };
 
 module.exports = (serviceKey, graphQLInformation) => {
