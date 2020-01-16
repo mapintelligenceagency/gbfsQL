@@ -48,7 +48,7 @@ class GBFS {
       ttl = parseInt(feedResponse.ttl, 10) * 1000;
       logger.info(`Fetched ${name} for ${this.serviceKey} at ${url}`);
 
-      this.pubsub.publish(this.serviceKey, {
+      this.pubsub.publish(`${this.serviceKey}.${name}`, {
         [this.serviceKey]: this.fullObject(),
       });
     } catch (error) {

@@ -10,6 +10,7 @@ const { argv } = require('yargs')
 const createSchema = require('./schema');
 const FEED = require('./feeds');
 const GBFS = require('./gbfs');
+const pubSubKeysForSubscription = require('./pubSubKeysForSubscription');
 
 // configure logger
 global.logger = bunyan.createLogger({ name: 'gbfsQL', level: argv.v ? 'debug' : 'error' });
@@ -42,7 +43,9 @@ Promise.all(promises).then(() => {
     services.map((gbfs) => [
       gbfs.serviceKey,
       {
-        subscribe: () => pubsub.asyncIterator(gbfs.serviceKey),
+        subscribe: (...meta) => pubsub.asyncIterator(
+          pubSubKeysForSubscription(gbfs.serviceKey, meta),
+        ),
       },
     ]),
   );
