@@ -69,7 +69,7 @@ Promise.all(promises).then(() => {
   });
 
   server.listen({
-    host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1',
+    host: '0.0.0.0',
     port: 4000,
   }).then(({ url }) => {
     logger.info(`🚀 Server ready at ${url}`);
