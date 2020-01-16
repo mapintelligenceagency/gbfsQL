@@ -18,5 +18,5 @@ jobs:
           PASSWORD: ${{ secrets.GITHUB_PERSONAL_TOKEN }}
           REGISTRY: "docker.pkg.github.com"
           IMAGE_NAME: "mapintelligenceagency/gbfsql"
-          TAG_NAME: "gbfsQL"
+          TAG_NAME: "gbfsql"
           LATEST: "true"
