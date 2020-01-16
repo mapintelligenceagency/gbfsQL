@@ -96,14 +96,12 @@ class GBFS {
 
   stationStatus(stationId) {
     const allStatus = this.feedCache[FEED.stationStatus].stations;
-    // eslint-disable-next-line eqeqeq
-    const status = allStatus.find((s) => s.station_id == stationId);
+    const status = allStatus.find((s) => s.station_id.toString() === stationId.toString());
     return status || null;
   }
 
   systemAlertForStation(stationId) {
     const allSystemAlerts = this.feedCache[FEED.systemAlerts].alerts;
-    // eslint-disable-next-line eqeqeq
     const alerts = allSystemAlerts.filter((alert) => alert.station_ids.includes(stationId));
     return alerts;
   }
