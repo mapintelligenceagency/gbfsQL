@@ -31,7 +31,7 @@ if (!givenServices || givenServices.length === 0) {
 // Turn services into GBFS objects
 const services = givenServices.map((service) => {
   const [name, ...url] = service.split('#');
-  return new GBFS(name, url.join(''));
+  return new GBFS(name.trim(), url.join(''));
 });
 const promises = services.map((s) => s.load());
 
@@ -68,7 +68,9 @@ Promise.all(promises).then(() => {
     schema,
   });
 
-  server.listen().then(({ url }) => {
+  server.listen({
+    host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1',
+  }).then(({ url }) => {
     logger.info(`🚀 Server ready at ${url}`);
   });
 });

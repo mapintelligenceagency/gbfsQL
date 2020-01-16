@@ -157,5 +157,6 @@ module.exports = (services) => {
   ${dynamicString}
   
   `;
+  logger.info(`Generated schema:\n${main}`);
   return main;
 };
