@@ -1,12 +1,5 @@
 #!/usr/bin/env node
-
-/*
-  Velocity#https://nitro.openvelo.org/aachen/velocity/v1/gbfs.json
-  Voi#https://nitro.openvelo.org/aachen/voi/v1/gbfs.json
-  NextbikeBN#https://gbfs.nextbike.net/maps/gbfs/v1/nextbike_bf/gbfs.json
-  NextbikeCG#https://gbfs.nextbike.net/maps/gbfs/v1/nextbike_kg/gbfs.json
-*/
-const { ApolloServer, makeExecutableSchema } = require('apollo-server');
+const { PubSub, ApolloServer, makeExecutableSchema } = require('apollo-server');
 const bunyan = require('bunyan');
 const { argv } = require('yargs')
   .boolean('v')
@@ -17,6 +10,7 @@ const { argv } = require('yargs')
 const createSchema = require('./schema');
 const FEED = require('./feeds');
 const GBFS = require('./gbfs');
+const pubSubKeysForSubscription = require('./pubSubKeysForSubscription');
 
 // configure logger
 global.logger = bunyan.createLogger({ name: 'gbfsQL', level: argv.v ? 'debug' : 'error' });
@@ -28,34 +22,56 @@ if (!givenServices || givenServices.length === 0) {
   process.exit(1);
 }
 
+const pubSub = new PubSub();
+
 // Turn services into GBFS objects
 const services = givenServices.map((service) => {
-  const [name, ...url] = service.split('#');
-  return new GBFS(name.trim(), url.join(''));
+  const [serviceKey, ...url] = service.split('#');
+  return new GBFS({
+    serviceKey: serviceKey.trim(),
+    autoDiscoveryURL: url.join(''),
+    pubSub,
+  });
 });
 const promises = services.map((s) => s.load());
 
 // Load all services to see which feeds are available
 Promise.all(promises).then(() => {
   const queryResolvers = Object.fromEntries(services
-    .map((gbfs) => [gbfs.serviceKey, () => ({
-      systemInformation: () => gbfs.systemInformation(),
-      stations: () => gbfs.stations(),
-      bikes: () => gbfs.bikes(),
-    }),
-    ]));
-  const stationResolvers = Object.fromEntries(services.filter((s) => !!s.feeds[FEED.stationStatus])
-    .map((gbfs) => [`${gbfs.serviceKey}Station`, {
-      currentStatus: (station) => gbfs.stationStatus(station.station_id),
-    },
-    ]));
+    .map((gbfs) => [gbfs.serviceKey, () => gbfs.fullObject()]));
+
+  const subscriptionResolvers = Object.fromEntries(
+    services.map((gbfs) => [
+      gbfs.serviceKey,
+      {
+        subscribe: (...meta) => pubSub.asyncIterator(
+          pubSubKeysForSubscription(gbfs.serviceKey, meta),
+        ),
+      },
+    ]),
+  );
+
+  const stationResolvers = {};
+  services.filter((gbfs) => !!gbfs.feeds[FEED.stationInformation]).forEach((gbfs) => {
+    const stationName = `${gbfs.serviceKey}Station`;
+    stationResolvers[stationName] = {};
+    if (gbfs.feeds[FEED.stationInformation]) {
+      stationResolvers[stationName].currentStatus = (station) => gbfs.stationStatus(station.station_id);
+    }
+    if (gbfs.feeds[FEED.systemAlerts]) {
+      stationResolvers[stationName].currentSystemAlerts = (station) => gbfs.systemAlertForStation(station.station_id);
+    }
+  });
 
   const typeDefs = createSchema(services);
 
   const resolvers = {
     Query: queryResolvers,
+    Subscription: subscriptionResolvers,
     ...stationResolvers,
   };
+
+
   const schema = makeExecutableSchema({
     typeDefs,
     resolvers,

@@ -5,10 +5,22 @@ const queryType = {
   [FEED.stationInformation]: (name) => `stations: [${name}Station]`,
   [FEED.stationStatus]: () => '',
   [FEED.freeBikeStatus]: (name) => `bikes: [${name}Bike]`,
+  [FEED.systemAlerts]: (name) => `systemAlerts: [${name}SystemAlert]`,
 };
 
+const systemAlertBody = () => `
+alert_id: String!
+type: AlertType!
+times: AlertTime
+station_ids: [String]
+region_ids: [String]
+url: String
+summary: String!
+description: String
+last_updated: String
+`;
 
-const systemInformationBody = `
+const systemInformationBody = () => `
 system_id: String!
 language: String!
 name: String!
@@ -24,21 +36,30 @@ timezone: String!
 license_url: String
 `;
 
-const stationBody = `
-station_id: Int!
-name: String!
-short_name: String
-lat: Float!
-lon: Float!
-address: String
-cross_street: String
-region_id: Int
-post_code: String
-rental_methods: [RentalMethod]
-capacity: Int
-`;
+const stationBody = (name = '', feeds = []) => {
+  let string = `
+  station_id: Int!
+  name: String!
+  short_name: String
+  lat: Float!
+  lon: Float!
+  address: String
+  cross_street: String
+  region_id: Int
+  post_code: String
+  rental_methods: [RentalMethod]
+  capacity: Int
+  `;
+  if (feeds.includes(FEED.stationInformation)) {
+    string += `\ncurrentStatus: ${name}StationStatus`;
+  }
+  if (feeds.includes(FEED.systemAlerts)) {
+    string += `\ncurrentSystemAlerts: [${name}SystemAlert]`;
+  }
+  return string;
+};
 
-const stationStatusBody = `
+const stationStatusBody = () => `
 station_id: Int!
 num_bikes_available: Int!
 num_bikes_disabled: Int
@@ -50,7 +71,7 @@ is_returning: Boolean!
 last_reported: String!
 `;
 
-const bikeBody = `
+const bikeBody = () => `
 bike_id: String!
 lat: Float!
 lon: Float!
@@ -58,28 +79,9 @@ is_reserved: Boolean!
 is_disabled: Boolean!
 `;
 
-const buildSystemInformation = (name) => `
-  type ${name}SystemInformation implements SystemInformation {
-    ${systemInformationBody}
-  }
-`;
-
-const buildStation = (name) => `
-  type ${name}Station implements Station {
-    ${stationBody}
-    currentStatus: ${name}StationStatus
-  }
-`;
-
-const buildStationStatus = (name) => `
-  type ${name}StationStatus implements StationStatus {
-    ${stationStatusBody}
-  }
-`;
-
-const buildFreeBike = (name) => `
-type ${name}Bike implements Bike {
-  ${bikeBody}
+const build = (name, superClass, body, feeds) => `
+type ${name}${superClass} implements ${superClass} {
+  ${body(name, feeds)}
 }
 `;
 
@@ -95,6 +97,12 @@ const buildQuery = (names) => `
   }
 `;
 
+const buildSubscription = (names) => `
+type Subscription {
+  ${names.map((name) => `${name}: ${name}`).join('\n')}
+}
+`;
+
 module.exports = (services) => {
   let dynamicString = '';
   services.forEach((gbfs) => {
@@ -104,20 +112,23 @@ module.exports = (services) => {
     dynamicString += feeds.map((feed) => {
       switch (feed) {
         case FEED.systemInformation:
-          return buildSystemInformation(name);
+          return build(name, 'SystemInformation', systemInformationBody);
         case FEED.stationInformation:
-          return buildStation(name);
+          return build(name, 'Station', stationBody, feeds);
         case FEED.stationStatus:
-          return buildStationStatus(name);
+          return build(name, 'StationStatus', stationStatusBody);
         case FEED.freeBikeStatus:
-          return buildFreeBike(name);
+          return build(name, 'Bike', bikeBody);
+        case FEED.systemAlerts:
+          return build(name, 'SystemAlert', systemAlertBody);
         default:
           return '';
       }
     });
     dynamicString += buildQueryBlock(name, feeds);
   });
-  dynamicString += buildQuery(services.map((s) => s.serviceKey));
+  dynamicString += buildQuery(services.map((gbfs) => gbfs.serviceKey));
+  dynamicString += buildSubscription(services.map((gbfs) => gbfs.serviceKey));
 
   const main = `
   enum RentalMethod {
@@ -131,28 +142,44 @@ module.exports = (services) => {
     PHONE
   }
 
-  interface Station {
-    ${stationBody}
-    currentStatus: StationStatus
+  enum AlertType {
+    SYSTEM_CLOSURE
+    STATION_CLOSURE
+    STATION_MOVE
+    OTHER
   }
 
-  interface StationStatus {
-    ${stationStatusBody}
+  type AlertTime {
+    start: Int!
+    end: Int
   }
 
-  interface SystemInformation {
-    ${systemInformationBody}
-  }
-
-  interface Bike {
-    ${bikeBody}
-  }
-
-  interface RentalURI {
+  type RentalURI {
     android: String
     iOS: String
     web: String
   }
+
+  interface Station {
+    ${stationBody()}
+  }
+
+  interface StationStatus {
+    ${stationStatusBody()}
+  }
+
+  interface SystemInformation {
+    ${systemInformationBody()}
+  }
+
+  interface Bike {
+    ${bikeBody()}
+  }
+
+  interface SystemAlert {
+    ${systemAlertBody()}
+  }
+
 
   ${dynamicString}
   

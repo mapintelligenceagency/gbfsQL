@@ -6,34 +6,38 @@ const supportedFeeds = [
   FEED.stationInformation,
   FEED.stationStatus,
   FEED.freeBikeStatus,
+  FEED.systemAlerts,
 ];
 
 class GBFS {
-  constructor(serviceKey, endpoint) {
+  constructor({ serviceKey, autoDiscoveryURL, pubSub }) {
     this.serviceKey = serviceKey;
-    this.endpoint = endpoint;
+    this.autoDiscoveryURL = autoDiscoveryURL;
+    this.pubSub = pubSub;
     this.feeds = {};
     this.feedCache = {};
   }
 
   async load() {
-    if (this.endpoint) {
-      const gbfs = await request(this.endpoint, { json: true });
+    if (this.autoDiscoveryURL) {
+      const gbfs = await request(this.autoDiscoveryURL, { json: true });
       if (!gbfs) {
-        logger.error(`Request to ${this.endpoint} was not successful`);
+        logger.error(`Request to ${this.autoDiscoveryURL} was not successful`);
         process.exit(1);
       }
       const providedFeeds = gbfs.data.en.feeds
         .filter((feed) => supportedFeeds.includes(feed.name));
 
-      providedFeeds.forEach((feed) => {
-        this.feeds[feed.name] = feed.url;
-        logger.info(`Found ${feed.name} for ${this.serviceKey}`);
-        this.crawl(feed);
-      });
       if (providedFeeds.length === 0) {
         logger.warning(`No services discovered for ${this.serviceKey}`);
       }
+
+      const feedPromises = providedFeeds.map((feed) => {
+        this.feeds[feed.name] = feed.url;
+        logger.info(`Found ${feed.name} for ${this.serviceKey}`);
+        return this.crawl(feed);
+      });
+      await Promise.all(feedPromises);
     }
   }
 
@@ -44,6 +48,10 @@ class GBFS {
       this.feedCache[name] = feedResponse.data;
       ttl = parseInt(feedResponse.ttl, 10) * 1000;
       logger.info(`Fetched ${name} for ${this.serviceKey} at ${url}`);
+
+      this.pubSub.publish(`${this.serviceKey}.${name}`, {
+        [this.serviceKey]: this.fullObject(),
+      });
     } catch (error) {
       logger.error(error);
     } finally {
@@ -63,11 +71,39 @@ class GBFS {
     return this.feedCache[FEED.freeBikeStatus].bikes;
   }
 
+  systemAlerts() {
+    return this.feedCache[FEED.systemAlerts].alerts;
+  }
+
+  fullObject() {
+    const object = {
+      systemInformation: () => this.systemInformation(),
+    };
+    if (this.feeds[FEED.freeBikeStatus]) {
+      object.bikes = () => this.bikes();
+    }
+
+    if (this.feeds[FEED.stationInformation]) {
+      object.stations = () => this.stations();
+    }
+
+    if (this.feeds[FEED.systemAlerts]) {
+      object.systemAlerts = () => this.systemAlerts();
+    }
+
+    return object;
+  }
+
   stationStatus(stationId) {
     const allStatus = this.feedCache[FEED.stationStatus].stations;
-    // eslint-disable-next-line eqeqeq
-    const status = allStatus.find((s) => s.station_id == stationId);
+    const status = allStatus.find((s) => s.station_id.toString() === stationId.toString());
     return status || null;
+  }
+
+  systemAlertForStation(stationId) {
+    const allSystemAlerts = this.feedCache[FEED.systemAlerts].alerts;
+    const alerts = allSystemAlerts.filter((alert) => alert.station_ids.includes(stationId));
+    return alerts;
   }
 }
 
