@@ -1,0 +1,19 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build & Push to GitHub Package
+        uses: opspresso/action-docker@master
+        env:
+          USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          PASSWORD: ${{ secrets.GITHUB_PERSONAL_TOKEN }}
+          REGISTRY: "docker.pkg.github.com"
+          IMAGE_NAME: "mapintelligencyagency/gbfsQL"
+          TAG_NAME: "latest"
+          LATEST: "true"
