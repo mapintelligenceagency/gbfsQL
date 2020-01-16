@@ -1,12 +1,5 @@
 #!/usr/bin/env node
-
-/*
-  Velocity#https://nitro.openvelo.org/aachen/velocity/v1/gbfs.json
-  Voi#https://nitro.openvelo.org/aachen/voi/v1/gbfs.json
-  NextbikeBN#https://gbfs.nextbike.net/maps/gbfs/v1/nextbike_bf/gbfs.json
-  NextbikeCG#https://gbfs.nextbike.net/maps/gbfs/v1/nextbike_kg/gbfs.json
-*/
-const { ApolloServer, makeExecutableSchema } = require('apollo-server');
+const { PubSub, ApolloServer, makeExecutableSchema } = require('apollo-server');
 const bunyan = require('bunyan');
 const { argv } = require('yargs')
   .boolean('v')
@@ -28,22 +21,32 @@ if (!givenServices || givenServices.length === 0) {
   process.exit(1);
 }
 
+const pubsub = new PubSub();
+
 // Turn services into GBFS objects
 const services = givenServices.map((service) => {
-  const [name, ...url] = service.split('#');
-  return new GBFS(name.trim(), url.join(''));
+  const [serviceKey, ...url] = service.split('#');
+  return new GBFS({
+    serviceKey: serviceKey.trim(),
+    autoDiscoveryURL: url.join(''),
+    pubsub,
+  });
 });
 const promises = services.map((s) => s.load());
 
 // Load all services to see which feeds are available
 Promise.all(promises).then(() => {
   const queryResolvers = Object.fromEntries(services
-    .map((gbfs) => [gbfs.serviceKey, () => ({
-      systemInformation: () => gbfs.systemInformation(),
-      stations: () => gbfs.stations(),
-      bikes: () => gbfs.bikes(),
-    }),
-    ]));
+    .map((gbfs) => [gbfs.serviceKey, gbfs.fullObject()]));
+  const subscriptionResolvers = Object.fromEntries(
+    services.map((gbfs) => [
+      gbfs.serviceKey,
+      {
+        subscribe: () => pubsub.asyncIterator(gbfs.serviceKey),
+      },
+    ]),
+  );
+
   const stationResolvers = Object.fromEntries(services.filter((s) => !!s.feeds[FEED.stationStatus])
     .map((gbfs) => [`${gbfs.serviceKey}Station`, {
       currentStatus: (station) => gbfs.stationStatus(station.station_id),
@@ -54,8 +57,11 @@ Promise.all(promises).then(() => {
 
   const resolvers = {
     Query: queryResolvers,
+    Subscription: subscriptionResolvers,
     ...stationResolvers,
   };
+
+
   const schema = makeExecutableSchema({
     typeDefs,
     resolvers,

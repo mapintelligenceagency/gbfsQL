@@ -9,31 +9,34 @@ const supportedFeeds = [
 ];
 
 class GBFS {
-  constructor(serviceKey, endpoint) {
+  constructor({ serviceKey, autoDiscoveryURL, pubsub }) {
     this.serviceKey = serviceKey;
-    this.endpoint = endpoint;
+    this.autoDiscoveryURL = autoDiscoveryURL;
+    this.pubsub = pubsub;
     this.feeds = {};
     this.feedCache = {};
   }
 
   async load() {
-    if (this.endpoint) {
-      const gbfs = await request(this.endpoint, { json: true });
+    if (this.autoDiscoveryURL) {
+      const gbfs = await request(this.autoDiscoveryURL, { json: true });
       if (!gbfs) {
-        logger.error(`Request to ${this.endpoint} was not successful`);
+        logger.error(`Request to ${this.autoDiscoveryURL} was not successful`);
         process.exit(1);
       }
       const providedFeeds = gbfs.data.en.feeds
         .filter((feed) => supportedFeeds.includes(feed.name));
 
-      providedFeeds.forEach((feed) => {
-        this.feeds[feed.name] = feed.url;
-        logger.info(`Found ${feed.name} for ${this.serviceKey}`);
-        this.crawl(feed);
-      });
       if (providedFeeds.length === 0) {
         logger.warning(`No services discovered for ${this.serviceKey}`);
       }
+
+      const feedPromises = providedFeeds.map((feed) => {
+        this.feeds[feed.name] = feed.url;
+        logger.info(`Found ${feed.name} for ${this.serviceKey}`);
+        return this.crawl(feed);
+      });
+      await Promise.all(feedPromises);
     }
   }
 
@@ -44,6 +47,10 @@ class GBFS {
       this.feedCache[name] = feedResponse.data;
       ttl = parseInt(feedResponse.ttl, 10) * 1000;
       logger.info(`Fetched ${name} for ${this.serviceKey} at ${url}`);
+
+      this.pubsub.publish(this.serviceKey, {
+        [this.serviceKey]: this.fullObject(),
+      });
     } catch (error) {
       logger.error(error);
     } finally {
@@ -61,6 +68,20 @@ class GBFS {
 
   bikes() {
     return this.feedCache[FEED.freeBikeStatus].bikes;
+  }
+
+  fullObject() {
+    const object = {
+      systemInformation: () => this.systemInformation(),
+    };
+    if (this.feeds[FEED.freeBikeStatus]) {
+      object.bikes = () => this.bikes();
+    }
+
+    if (this.feeds[FEED.stationInformation]) {
+      object.stations = () => this.stations();
+    }
+    return object;
   }
 
   stationStatus(stationId) {

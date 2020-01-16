@@ -95,6 +95,12 @@ const buildQuery = (names) => `
   }
 `;
 
+const buildSubscription = (names) => `
+type Subscription {
+  ${names.map((name) => `${name}: ${name}`).join('\n')}
+}
+`;
+
 module.exports = (services) => {
   let dynamicString = '';
   services.forEach((gbfs) => {
@@ -118,6 +124,7 @@ module.exports = (services) => {
     dynamicString += buildQueryBlock(name, feeds);
   });
   dynamicString += buildQuery(services.map((s) => s.serviceKey));
+  dynamicString += buildSubscription(services.map((s) => s.serviceKey));
 
   const main = `
   enum RentalMethod {
