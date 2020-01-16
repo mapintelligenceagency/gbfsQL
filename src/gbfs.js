@@ -10,10 +10,10 @@ const supportedFeeds = [
 ];
 
 class GBFS {
-  constructor({ serviceKey, autoDiscoveryURL, pubsub }) {
+  constructor({ serviceKey, autoDiscoveryURL, pubSub }) {
     this.serviceKey = serviceKey;
     this.autoDiscoveryURL = autoDiscoveryURL;
-    this.pubsub = pubsub;
+    this.pubSub = pubSub;
     this.feeds = {};
     this.feedCache = {};
   }
@@ -49,7 +49,7 @@ class GBFS {
       ttl = parseInt(feedResponse.ttl, 10) * 1000;
       logger.info(`Fetched ${name} for ${this.serviceKey} at ${url}`);
 
-      this.pubsub.publish(`${this.serviceKey}.${name}`, {
+      this.pubSub.publish(`${this.serviceKey}.${name}`, {
         [this.serviceKey]: this.fullObject(),
       });
     } catch (error) {
@@ -104,7 +104,7 @@ class GBFS {
   systemAlertForStation(stationId) {
     const allSystemAlerts = this.feedCache[FEED.systemAlerts].alerts;
     // eslint-disable-next-line eqeqeq
-    const alerts = allSystemAlerts.filter((a) => a.station_ids.includes(stationId));
+    const alerts = allSystemAlerts.filter((alert) => alert.station_ids.includes(stationId));
     return alerts;
   }
 }

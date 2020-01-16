@@ -22,7 +22,7 @@ if (!givenServices || givenServices.length === 0) {
   process.exit(1);
 }
 
-const pubsub = new PubSub();
+const pubSub = new PubSub();
 
 // Turn services into GBFS objects
 const services = givenServices.map((service) => {
@@ -30,7 +30,7 @@ const services = givenServices.map((service) => {
   return new GBFS({
     serviceKey: serviceKey.trim(),
     autoDiscoveryURL: url.join(''),
-    pubsub,
+    pubSub,
   });
 });
 const promises = services.map((s) => s.load());
@@ -44,7 +44,7 @@ Promise.all(promises).then(() => {
     services.map((gbfs) => [
       gbfs.serviceKey,
       {
-        subscribe: (...meta) => pubsub.asyncIterator(
+        subscribe: (...meta) => pubSub.asyncIterator(
           pubSubKeysForSubscription(gbfs.serviceKey, meta),
         ),
       },

@@ -51,14 +51,10 @@ const stationBody = (name = '', feeds = []) => {
   capacity: Int
   `;
   if (feeds.includes(FEED.stationInformation)) {
-    string += `
-  currentStatus: ${name}StationStatus
-    `;
+    string += `\ncurrentStatus: ${name}StationStatus`;
   }
   if (feeds.includes(FEED.systemAlerts)) {
-    string += `
-  currentSystemAlerts: [${name}SystemAlert]
-    `;
+    string += `\ncurrentSystemAlerts: [${name}SystemAlert]`;
   }
   return string;
 };
@@ -131,8 +127,8 @@ module.exports = (services) => {
     });
     dynamicString += buildQueryBlock(name, feeds);
   });
-  dynamicString += buildQuery(services.map((s) => s.serviceKey));
-  dynamicString += buildSubscription(services.map((s) => s.serviceKey));
+  dynamicString += buildQuery(services.map((gbfs) => gbfs.serviceKey));
+  dynamicString += buildSubscription(services.map((gbfs) => gbfs.serviceKey));
 
   const main = `
   enum RentalMethod {
