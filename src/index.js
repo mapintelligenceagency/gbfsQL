@@ -3,6 +3,7 @@ const { PubSub, ApolloServer, makeExecutableSchema } = require('apollo-server');
 const bunyan = require('bunyan');
 const { argv } = require('yargs')
   .boolean('v')
+  .alias('v', 'verbose')
   .array('s')
   .alias('s', 'service')
   .alias('s', 'services');

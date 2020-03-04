@@ -19,7 +19,7 @@ gbfsQL will query the GBFS-Feed every time the TTL expires and cache results. Th
 Try the [Example](#example) below or use the follwing command to start a gbfsQL Docker container:
 
 ```
-docker run -it --rm --name gbfsQL -e NODE_ENV=development -p 4000:4000 mapintelligenceagency/gbfsql -v -s <Name of Service>#<URL to */gbfs.json>
+docker run -it --rm --name gbfsQL -e NODE_ENV=development -p 4000:4000 mapintelligenceagency/gbfsql -service <Name of Service>#<URL to */gbfs.json>
 ```
 
 ## Example
@@ -31,13 +31,11 @@ version: '3.3'
 services:
     gbfsql:
         container_name: gbfsQL
-        command: ["-s", "JUMP_LA#https://gbfs.uber.com/v1/laxs/gbfs.json", "-s", "UBIKE_UV#http://ubike.virginia.edu/opendata/gbfs.json"]
+        command: ["-service", "JUMP_LA#https://gbfs.uber.com/v1/laxs/gbfs.json", "-service", "UBIKE_UV#http://ubike.virginia.edu/opendata/gbfs.json", "-verbose"]
         environment:
             - NODE_ENV=development
         ports:
             - '4000:4000'
-        volumes:
-            - 'true'
         image: mapintelligenceagency/gbfsql
 ```
 
