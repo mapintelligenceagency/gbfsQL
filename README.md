@@ -31,7 +31,11 @@ version: '3.3'
 services:
     gbfsql:
         container_name: gbfsQL
-        command: ["-services", "JUMP_LA#https://gbfs.uber.com/v1/laxs/gbfs.json", "UBIKE_UV#http://ubike.virginia.edu/opendata/gbfs.json", "-verbose"]
+        command: 
+            - '--services'
+            - 'JUMP_LA#https://gbfs.uber.com/v1/laxs/gbfs.json'
+            - 'UBIKE_UV#http://ubike.virginia.edu/opendata/gbfs.json'
+            - '--verbose'
         environment:
             - NODE_ENV=development
         ports:
