@@ -26,7 +26,7 @@ docker run -it --rm --name gbfsQL -e NODE_ENV=development -p 4000:4000 mapintell
 
 Create a docker-compose.yml file like this:
 
-```
+```yaml
 version: '3.3'
 services:
     gbfsql:
@@ -47,7 +47,7 @@ Start gbfsQL with `docker-compose up`
 
 Now you can visit the GraphiQL Board at http://localhost:4000 and query data using this sample query:
 
-```
+```graphql
 query {
   JUMP_LA {
     bikes {
