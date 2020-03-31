@@ -1,12 +1,12 @@
-const request = require('request-promise-native');
-const FEED = require('./feeds');
+const request = require("request-promise-native");
+const FEED = require("./feeds");
 
 const supportedFeeds = [
   FEED.systemInformation,
   FEED.stationInformation,
   FEED.stationStatus,
   FEED.freeBikeStatus,
-  FEED.systemAlerts,
+  FEED.systemAlerts
 ];
 
 class GBFS {
@@ -25,14 +25,15 @@ class GBFS {
         logger.error(`Request to ${this.autoDiscoveryURL} was not successful`);
         process.exit(1);
       }
-      const providedFeeds = gbfs.data.en.feeds
-        .filter((feed) => supportedFeeds.includes(feed.name));
+      const providedFeeds = gbfs.data.en.feeds.filter(feed =>
+        supportedFeeds.includes(feed.name)
+      );
 
       if (providedFeeds.length === 0) {
         logger.warning(`No services discovered for ${this.serviceKey}`);
       }
 
-      const feedPromises = providedFeeds.map((feed) => {
+      const feedPromises = providedFeeds.map(feed => {
         this.feeds[feed.name] = feed.url;
         logger.info(`Found ${feed.name} for ${this.serviceKey}`);
         return this.crawl(feed);
@@ -50,7 +51,7 @@ class GBFS {
       logger.info(`Fetched ${name} for ${this.serviceKey} at ${url}`);
 
       this.pubSub.publish(`${this.serviceKey}.${name}`, {
-        [this.serviceKey]: this.fullObject(),
+        [this.serviceKey]: this.fullObject()
       });
     } catch (error) {
       logger.error(error);
@@ -67,8 +68,12 @@ class GBFS {
     return this.feedCache[FEED.systemInformation];
   }
 
-  bikes() {
-    return this.feedCache[FEED.freeBikeStatus].bikes;
+  bikes(withIds = undefined) {
+    const bikes = this.feedCache[FEED.freeBikeStatus].bikes;
+    if (withIds !== undefined) {
+      return bikes.filter(bike => withIds.includes(bike.bike_id));
+    }
+    return bikes;
   }
 
   systemAlerts() {
@@ -77,10 +82,12 @@ class GBFS {
 
   fullObject() {
     const object = {
-      systemInformation: () => this.systemInformation(),
+      systemInformation: () => this.systemInformation()
     };
     if (this.feeds[FEED.freeBikeStatus]) {
-      object.bikes = () => this.bikes();
+      object.bikes = ({ with_ids: withIds }) => {
+        return this.bikes(withIds);
+      };
     }
 
     if (this.feeds[FEED.stationInformation]) {
@@ -96,13 +103,17 @@ class GBFS {
 
   stationStatus(stationId) {
     const allStatus = this.feedCache[FEED.stationStatus].stations;
-    const status = allStatus.find((s) => s.station_id.toString() === stationId.toString());
+    const status = allStatus.find(
+      s => s.station_id.toString() === stationId.toString()
+    );
     return status || null;
   }
 
   systemAlertForStation(stationId) {
     const allSystemAlerts = this.feedCache[FEED.systemAlerts].alerts;
-    const alerts = allSystemAlerts.filter((alert) => alert.station_ids.includes(stationId));
+    const alerts = allSystemAlerts.filter(alert =>
+      alert.station_ids.includes(stationId)
+    );
     return alerts;
   }
 }

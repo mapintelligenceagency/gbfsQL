@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "serve": "nodemon -- -v -s Velocity#https://nitro.openvelo.org/aachen/velocity/v1/gbfs.json -s Voi#https://nitro.openvelo.org/aachen/voi/v1/gbfs.json | bunyan"
+    "serve": "nodemon -- -v -s Velocity#https://nitro.openvelo.org/aachen/velocity/v1/gbfs.json -s Tier#https://nitro.openvelo.org/aachen/tier/v1/gbfs.json | bunyan"
   },
   "name": "gbfsql",
   "version": "1.0.0",
