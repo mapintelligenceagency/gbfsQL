@@ -2,18 +2,13 @@ name: CI
 
 on:
   push:
-    branches:    
+    branches:
       - master
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
       - name: Build & Push to GitHub Package
         uses: opspresso/action-docker@master
         env:
