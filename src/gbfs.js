@@ -25,8 +25,7 @@ class GBFS {
         logger.error(`Request to ${this.autoDiscoveryURL} was not successful`);
         process.exit(1);
       }
-      const providedFeeds = gbfs.data.en.feeds
-        .filter((feed) => supportedFeeds.includes(feed.name));
+      const providedFeeds = gbfs.data.en.feeds.filter((feed) => supportedFeeds.includes(feed.name));
 
       if (providedFeeds.length === 0) {
         logger.warning(`No services discovered for ${this.serviceKey}`);
@@ -67,8 +66,12 @@ class GBFS {
     return this.feedCache[FEED.systemInformation];
   }
 
-  bikes() {
-    return this.feedCache[FEED.freeBikeStatus].bikes;
+  bikes(withIds = undefined) {
+    const { bikes } = this.feedCache[FEED.freeBikeStatus];
+    if (withIds !== undefined) {
+      return bikes.filter((bike) => withIds.includes(bike.bike_id));
+    }
+    return bikes;
   }
 
   systemAlerts() {
@@ -80,7 +83,7 @@ class GBFS {
       systemInformation: () => this.systemInformation(),
     };
     if (this.feeds[FEED.freeBikeStatus]) {
-      object.bikes = () => this.bikes();
+      object.bikes = ({ with_ids: withIds }) => this.bikes(withIds);
     }
 
     if (this.feeds[FEED.stationInformation]) {
@@ -96,7 +99,9 @@ class GBFS {
 
   stationStatus(stationId) {
     const allStatus = this.feedCache[FEED.stationStatus].stations;
-    const status = allStatus.find((s) => s.station_id.toString() === stationId.toString());
+    const status = allStatus.find(
+      (s) => s.station_id.toString() === stationId.toString(),
+    );
     return status || null;
   }
 

@@ -4,7 +4,7 @@ const queryType = {
   [FEED.systemInformation]: (name) => `systemInformation: ${name}SystemInformation`,
   [FEED.stationInformation]: (name) => `stations: [${name}Station]`,
   [FEED.stationStatus]: () => '',
-  [FEED.freeBikeStatus]: (name) => `bikes: [${name}Bike]`,
+  [FEED.freeBikeStatus]: (name) => `bikes(with_ids: [String]): [${name}Bike]`,
   [FEED.systemAlerts]: (name) => `systemAlerts: [${name}SystemAlert]`,
 };
 
