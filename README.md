@@ -9,6 +9,7 @@ We support [GBFS Version v1.1](https://github.com/NABSA/gbfs/releases/tag/v1.1-R
 -   SystemInformation, StationInformation, StationStatus, FreeBike, and SystemAlert endpoints
 -   Real-time updates via GraphQL Subscriptions
 -   Autodiscovory of available feeds
+-   Dashboard, listing all active feeds
 
 ## Notes
 
@@ -36,6 +37,8 @@ services:
             - 'JUMP_LA#https://gbfs.uber.com/v1/laxs/gbfs.json'
             - 'UBIKE_UV#http://ubike.virginia.edu/opendata/gbfs.json'
             - '--verbose'
+            # the dashboard will be at domain.com/dashboard
+            - '--dashboard'
         environment:
             - NODE_ENV=development
         ports:
