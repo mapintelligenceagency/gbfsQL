@@ -14,6 +14,8 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
+      - name: Lint Action
+        uses: samuelmeuli/lint-action@v1.4.0        
       - name: Build & Push to GitHub Package
         uses: opspresso/action-docker@master
         env:
