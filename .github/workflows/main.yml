@@ -19,8 +19,8 @@ jobs:
       - name: Lint
         run: yarn lint
 
-  build:
-    if: github.event_name == 'push'
+  publish:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs: lint
     steps:
