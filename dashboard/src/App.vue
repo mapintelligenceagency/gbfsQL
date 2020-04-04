@@ -6,7 +6,7 @@
       dark
     >
       <div class="d-flex align-center">
-        <span>gbfsQL by Map Intelligence Agency</span>
+        <span>gbfsQL by MIA map intelligence agency</span>
       </div>
       <v-spacer />
       <v-toolbar-title>Active Feeds</v-toolbar-title>
@@ -14,7 +14,7 @@
       <v-spacer />
 
       <v-btn
-        href="https://github.com/mapintelligenceagency/gbfsql"
+        href="https://github.com/mapintelligenceagency/gbfsQL/releases"
         target="_blank"
         text
       >

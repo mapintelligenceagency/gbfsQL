@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 const { PubSub, ApolloServer, makeExecutableSchema } = require('apollo-server-express');
 const express = require('express');
-const serveStatic = require('serve-static');
 const http = require('http');
 const cors = require('cors');
 const bunyan = require('bunyan');
@@ -102,7 +101,7 @@ Promise.all(promises).then(() => {
         services,
       });
     });
-    // app.use(serveStatic('public/ftp', { index: ['default.html', 'default.htm'] }));
+    app.use('/dashboard', express.static('dashboard/dist'));
   }
   server.applyMiddleware({ app });
   const httpServer = http.createServer(app);

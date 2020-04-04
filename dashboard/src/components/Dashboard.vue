@@ -4,7 +4,7 @@
       <v-card
         v-for="service in services"
         :key="service.serviceKey"
-        class="mt-4"
+        class="mt-4 mr-4"
         max-width="400"
       >
         <v-card-text>
@@ -56,7 +56,8 @@ export default {
     services: [],
   }),
   async mounted() {
-    const response = await fetch('http://localhost:4000/stats').then((r) => r.json());
+    const url = process.env.NODE_ENV === 'production' ? '/stats' : 'http://localhost:4000/stats';
+    const response = await fetch(url).then((r) => r.json());
     this.services = response.services;
   },
   methods: {
