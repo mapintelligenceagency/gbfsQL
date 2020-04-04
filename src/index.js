@@ -1,13 +1,21 @@
 #!/usr/bin/env node
-const { PubSub, ApolloServer, makeExecutableSchema } = require('apollo-server');
+const { PubSub, ApolloServer, makeExecutableSchema } = require('apollo-server-express');
+const express = require('express');
+const http = require('http');
+const cors = require('cors');
 const bunyan = require('bunyan');
 const { argv } = require('yargs')
+  .boolean('dashboard')
   .boolean('v')
   .alias('v', 'verbose')
   .array('s')
   .alias('s', 'service')
-  .alias('s', 'services');
+  .alias('s', 'services')
+  .number('p')
+  .default('p', 4000)
+  .alias('p', 'port');
 
+const PORT = argv.port;
 const createSchema = require('./schema');
 const FEED = require('./feeds');
 const GBFS = require('./gbfs');
@@ -85,11 +93,24 @@ Promise.all(promises).then(() => {
     schema,
   });
 
-  server.listen({
-    host: '0.0.0.0',
-    port: 4000,
-  }).then(({ url }) => {
-    logger.info(`🚀 Server ready at ${url}`);
+  const app = express();
+  if (argv.dashboard) {
+    app.use(cors());
+    app.get('/stats', (req, res) => {
+      res.json({
+        services,
+      });
+    });
+    app.use('/dashboard', express.static('dashboard/dist'));
+  }
+  server.applyMiddleware({ app });
+  const httpServer = http.createServer(app);
+  server.installSubscriptionHandlers(httpServer);
+
+  // ⚠️ Pay attention to the fact that we are calling `listen` on the http server variable, and not on `app`.
+  httpServer.listen(PORT, () => {
+    logger.info(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
+    logger.info(`🚀 Subscriptions ready at ws://localhost:${PORT}${server.subscriptionsPath}`);
   });
 });
 

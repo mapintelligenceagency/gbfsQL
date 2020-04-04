@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = Object.freeze({
   systemInformation: 'system_information',
   stationInformation: 'station_information',
   stationStatus: 'station_status',
@@ -8,4 +8,4 @@ module.exports = {
   systemRegions: 'system_regions',
   systemPricingPlans: 'system_pricing_plans',
   systemAlerts: 'system_alerts',
-};
+});
