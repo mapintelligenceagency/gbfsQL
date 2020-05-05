@@ -8,7 +8,7 @@ We support [GBFS Version v1.1](https://github.com/NABSA/gbfs/releases/tag/v1.1-R
 
 -   SystemInformation, StationInformation, StationStatus, FreeBike, and SystemAlert endpoints
 -   Real-time updates via GraphQL Subscriptions
--   Autodiscovory of available feeds
+-   Autodiscovery of available feeds
 -   Dashboard, listing all active feeds
 
 ## Notes
