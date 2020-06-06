@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "apollo-server": "^2.11.0",
-    "apollo-server-express": "^2.11.0",
+    "apollo-server-express": "^2.14.2",
     "bunyan": "^1.8.12",
     "cors": "^2.8.5",
     "express": "^4.17.1",
