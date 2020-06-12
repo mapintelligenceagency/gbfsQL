@@ -7,8 +7,16 @@ const supportedFeeds = [
   FEED.stationStatus,
   FEED.freeBikeStatus,
   FEED.systemAlerts,
+  FEED.vehicleTypes,
 ];
 
+const calculateVehicleBatteries = (vehicles, vehicleTypes) => vehicles.map((vehicle) => ({
+  ...vehicle,
+  mia_battery: ((vehicle.current_range_meters
+    / vehicleTypes.find((vehicleType) => vehicleType.vehicle_type_id === vehicle.vehicle_type_id).max_range_meters)
+    * 100
+  ),
+}));
 class GBFS {
   constructor({ serviceKey, autoDiscoveryURL, pubSub }) {
     this.serviceKey = serviceKey;
@@ -67,15 +75,22 @@ class GBFS {
   }
 
   bikes(withIds = undefined) {
-    const { bikes } = this.feedCache[FEED.freeBikeStatus];
+    let { bikes } = this.feedCache[FEED.freeBikeStatus];
     if (withIds !== undefined) {
       return bikes.filter((bike) => withIds.includes(bike.bike_id));
+    }
+    if (this.feedCache[FEED.vehicleTypes]) {
+      bikes = calculateVehicleBatteries(bikes, this.feedCache[FEED.vehicleTypes].vehicle_types);
     }
     return bikes;
   }
 
   systemAlerts() {
     return this.feedCache[FEED.systemAlerts].alerts;
+  }
+
+  vehicleTypes() {
+    return this.feedCache[FEED.vehicleTypes].vehicle_types;
   }
 
   fullObject() {
@@ -94,6 +109,10 @@ class GBFS {
       object.systemAlerts = () => this.systemAlerts();
     }
 
+    if (this.feeds[FEED.vehicleTypes]) {
+      object.vehicleTypes = () => this.vehicleTypes();
+    }
+
     return object;
   }
 
@@ -102,6 +121,9 @@ class GBFS {
     const status = allStatus.find(
       (s) => s.station_id.toString() === stationId.toString(),
     );
+    if (this.feedCache[FEED.vehicleTypes]) {
+      status.vehicles = calculateVehicleBatteries(status.vehicles, this.feedCache[FEED.vehicleTypes].vehicle_types);
+    }
     return status || null;
   }
 
