@@ -12,11 +12,12 @@ const supportedFeeds = [
 
 const calculateVehicleBatteries = (vehicles, vehicleTypes) => vehicles.map((vehicle) => ({
   ...vehicle,
-  mia_battery: ((vehicle.current_range_meters
+  x_mia_battery: parseFloat(((vehicle.current_range_meters
     / vehicleTypes.find((vehicleType) => vehicleType.vehicle_type_id === vehicle.vehicle_type_id).max_range_meters)
     * 100
-  ),
+  ).toFixed(2)),
 }));
+
 class GBFS {
   constructor({ serviceKey, autoDiscoveryURL, pubSub }) {
     this.serviceKey = serviceKey;

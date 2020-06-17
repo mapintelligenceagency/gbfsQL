@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 const FEED = require('./feeds');
 
 const queryType = {
@@ -69,7 +68,7 @@ const stationBody = (name = '', feeds = []) => {
   return string;
 };
 
-const stationStatusBody = (_name = [], feeds = []) => {
+const stationStatusBody = (_name, feeds = []) => {
   let string = `
   station_id: Int!
   num_bikes_available: Int!
@@ -88,19 +87,24 @@ const stationStatusBody = (_name = [], feeds = []) => {
   return string;
 };
 
-const bikeBody = (_name = '', feeds = []) => {
-  let string = `
+const bikeBody = (_name, feeds = []) => {
+  let vehicleTypes = '';
+  if (feeds.includes(FEED.vehicleTypes)) {
+    vehicleTypes = `
+    vehicle_type_id: String
+    current_range_meters: Float
+    x_mia_battery: Float
+    `;
+  }
+  const string = `
   bike_id: String!
   lat: Float!
   lon: Float!
   is_reserved: Boolean!
   is_disabled: Boolean!
+  last_reported: Int
+  ${vehicleTypes}
   `;
-  if (feeds.includes(FEED.vehicleTypes)) {
-    string += '\nvehicle_type_id: String';
-    string += '\ncurrent_range_meters: Float';
-    string += '\nmia_battery: Float';
-  }
   return string;
 };
 
@@ -193,7 +197,7 @@ module.exports = (services) => {
     is_disabled: Boolean
     vehicle_type_id: String
     current_range_meters: Float
-    mia_battery: Float
+    x_mia_battery: Float
   }
 
   type AvailableDock {
