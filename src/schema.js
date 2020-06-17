@@ -6,7 +6,16 @@ const queryType = {
   [FEED.stationStatus]: () => '',
   [FEED.freeBikeStatus]: (name) => `bikes(with_ids: [String]): [${name}Bike]`,
   [FEED.systemAlerts]: (name) => `systemAlerts: [${name}SystemAlert]`,
+  [FEED.vehicleTypes]: (name) => `vehicleTypes: [${name}VehicleTypes]`,
 };
+
+const vehicleTypeBody = () => `
+vehicle_type_id: String
+form_factor: String
+propulsion_type: String
+max_range_meters: Int!
+name: String!
+`;
 
 const systemAlertBody = () => `
 alert_id: String!
@@ -59,25 +68,45 @@ const stationBody = (name = '', feeds = []) => {
   return string;
 };
 
-const stationStatusBody = () => `
-station_id: Int!
-num_bikes_available: Int!
-num_bikes_disabled: Int
-num_docks_available: Int!
-num_docks_disabled: Int
-is_installed: Boolean!
-is_renting: Boolean!
-is_returning: Boolean!
-last_reported: String!
-`;
+const stationStatusBody = (_name, feeds = []) => {
+  let string = `
+  station_id: Int!
+  num_bikes_available: Int!
+  num_bikes_disabled: Int
+  num_docks_available: Int!
+  num_docks_disabled: Int
+  is_installed: Boolean!
+  is_renting: Boolean!
+  is_returning: Boolean!
+  last_reported: Int!
+  count: Int`;
+  if (feeds.includes(FEED.vehicleTypes)) {
+    string += '\nvehicles: [DockedVehicle]';
+    string += '\nvehicle_docks_available: [AvailableDock]';
+  }
+  return string;
+};
 
-const bikeBody = () => `
-bike_id: String!
-lat: Float!
-lon: Float!
-is_reserved: Boolean!
-is_disabled: Boolean!
-`;
+const bikeBody = (_name, feeds = []) => {
+  let vehicleTypes = '';
+  if (feeds.includes(FEED.vehicleTypes)) {
+    vehicleTypes = `
+    vehicle_type_id: String
+    current_range_meters: Float
+    x_mia_battery: Float
+    `;
+  }
+  const string = `
+  bike_id: String!
+  lat: Float!
+  lon: Float!
+  is_reserved: Boolean!
+  is_disabled: Boolean!
+  last_reported: Int
+  ${vehicleTypes}
+  `;
+  return string;
+};
 
 const build = (name, superClass, body, feeds) => `
 type ${name}${superClass} implements ${superClass} {
@@ -112,15 +141,17 @@ module.exports = (services) => {
     dynamicString += feeds.map((feed) => {
       switch (feed) {
         case FEED.systemInformation:
-          return build(name, 'SystemInformation', systemInformationBody);
+          return build(name, 'SystemInformation', systemInformationBody, feeds);
         case FEED.stationInformation:
           return build(name, 'Station', stationBody, feeds);
         case FEED.stationStatus:
-          return build(name, 'StationStatus', stationStatusBody);
+          return build(name, 'StationStatus', stationStatusBody, feeds);
         case FEED.freeBikeStatus:
-          return build(name, 'Bike', bikeBody);
+          return build(name, 'Bike', bikeBody, feeds);
         case FEED.systemAlerts:
-          return build(name, 'SystemAlert', systemAlertBody);
+          return build(name, 'SystemAlert', systemAlertBody, feeds);
+        case FEED.vehicleTypes:
+          return build(name, 'VehicleTypes', vehicleTypeBody, feeds);
         default:
           return '';
       }
@@ -160,6 +191,20 @@ module.exports = (services) => {
     web: String
   }
 
+  type DockedVehicle {
+    bike_id: String
+    is_reserved: Boolean
+    is_disabled: Boolean
+    vehicle_type_id: String
+    current_range_meters: Float
+    x_mia_battery: Float
+  }
+
+  type AvailableDock {
+    vehicle_type_ids: [String]
+    count: Int
+  }
+
   interface Station {
     ${stationBody()}
   }
@@ -180,6 +225,9 @@ module.exports = (services) => {
     ${systemAlertBody()}
   }
 
+  interface VehicleTypes {
+    ${vehicleTypeBody()}
+  }
 
   ${dynamicString}
   

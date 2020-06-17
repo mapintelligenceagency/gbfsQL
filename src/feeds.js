@@ -8,4 +8,5 @@ module.exports = Object.freeze({
   systemRegions: 'system_regions',
   systemPricingPlans: 'system_pricing_plans',
   systemAlerts: 'system_alerts',
+  vehicleTypes: 'vehicle_types',
 });
