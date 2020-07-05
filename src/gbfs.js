@@ -67,8 +67,12 @@ class GBFS {
     }
   }
 
-  stations() {
-    return this.feedCache[FEED.stationInformation].stations || [];
+  stations(withIds = undefined) {
+    const { stations } = this.feedCache[FEED.stationInformation];
+    if (withIds !== undefined) {
+      return stations.filter((station) => withIds.includes(station.station_id));
+    }
+    return stations;
   }
 
   systemInformation() {
@@ -103,7 +107,7 @@ class GBFS {
     }
 
     if (this.feeds[FEED.stationInformation]) {
-      object.stations = () => this.stations();
+      object.stations = ({ with_ids: withIds }) => this.stations(withIds);
     }
 
     if (this.feeds[FEED.systemAlerts]) {
