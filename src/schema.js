@@ -2,7 +2,7 @@ const FEED = require('./feeds');
 
 const queryType = {
   [FEED.systemInformation]: (name) => `systemInformation: ${name}SystemInformation`,
-  [FEED.stationInformation]: (name) => `stations: [${name}Station]`,
+  [FEED.stationInformation]: (name) => `stations(with_ids: [String]): [${name}Station]`,
   [FEED.stationStatus]: () => '',
   [FEED.freeBikeStatus]: (name) => `bikes(with_ids: [String]): [${name}Bike]`,
   [FEED.systemAlerts]: (name) => `systemAlerts: [${name}SystemAlert]`,
