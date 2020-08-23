@@ -81,11 +81,11 @@ class GBFS {
 
   bikes(withIds = undefined) {
     let { bikes } = this.feedCache[FEED.freeBikeStatus];
-    if (withIds !== undefined) {
-      return bikes.filter((bike) => withIds.includes(bike.bike_id));
-    }
     if (this.feedCache[FEED.vehicleTypes]) {
       bikes = calculateVehicleBatteries(bikes, this.feedCache[FEED.vehicleTypes].vehicle_types);
+    }
+    if (withIds !== undefined) {
+      return bikes.filter((bike) => withIds.includes(bike.bike_id));
     }
     return bikes;
   }
