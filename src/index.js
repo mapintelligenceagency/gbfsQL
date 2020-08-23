@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+
+const Sentry = require('@sentry/node');
 const { PubSub, ApolloServer, makeExecutableSchema } = require('apollo-server-express');
 const express = require('express');
 const http = require('http');
@@ -21,8 +23,29 @@ const FEED = require('./feeds');
 const GBFS = require('./gbfs');
 const pubSubKeysForSubscription = require('./pubSubKeysForSubscription');
 
+const bunyanStreams = [{
+  stream: process.stdout,
+  level: argv.v ? 'debug' : 'error',
+}];
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({ dsn: process.env.SENTRY_DSN });
+  bunyanStreams.push({
+    level: 'error',
+    type: 'raw',
+    stream: {
+      write(record) {
+        Sentry.captureMessage(record.msg, 'error');
+      },
+    },
+  });
+}
+
 // configure logger
-global.logger = bunyan.createLogger({ name: 'gbfsQL', level: argv.v ? 'debug' : 'error' });
+global.logger = bunyan.createLogger({
+  name: 'gbfsQL',
+  streams: bunyanStreams,
+});
 
 // Exit if no services are given
 const givenServices = argv.services;
