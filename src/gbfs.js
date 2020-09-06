@@ -122,18 +122,7 @@ class GBFS {
         object[key] = () => this[key]();
       }
     });
-    /*    if (this.feeds[FEED.systemAlerts]) {
-      object.systemAlerts = () => this.systemAlerts();
-    }
 
-    if (this.feeds[FEED.vehicleTypes]) {
-      object.vehicleTypes = () => this.vehicleTypes();
-    }
-
-    if (this.feeds[FEED.geofencingZones]) {
-      object.geofencingZones = () => this.geofencingZones();
-    }
-*/
     return object;
   }
 
