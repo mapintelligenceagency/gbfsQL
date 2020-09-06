@@ -7,7 +7,7 @@ gbfsQL takes a list of GBFS feeds and exposes a dynamic GraphQL API that you can
 We support [GBFS Version v2.1-RC](https://github.com/NABSA/gbfs/releases/tag/v2.1-RC) (compatible with release [2.0](https://github.com/NABSA/gbfs/releases/tag/v2.0)) and aim to update this project to newer releases as soon as they become available.
 
 -   SystemInformation, StationInformation, StationStatus, FreeBike, Geofencing Zones and SystemAlert endpoints
--   Real-time updates via GraphQL Subscriptions (except Geofencing zones)
+-   Real-time updates via GraphQL Subscriptions
 -   Autodiscovery of available feeds
 -   Dashboard, listing all active feeds
 
