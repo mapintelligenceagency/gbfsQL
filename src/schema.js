@@ -7,6 +7,7 @@ const queryType = {
   [FEED.freeBikeStatus]: (name) => `bikes(with_ids: [String]): [${name}Bike]`,
   [FEED.systemAlerts]: (name) => `systemAlerts: [${name}SystemAlert]`,
   [FEED.vehicleTypes]: (name) => `vehicleTypes: [${name}VehicleTypes]`,
+  [FEED.geofencingZones]: (name) => `geofencingZones: ${name}GeofencingZone`,
 };
 
 const vehicleTypeBody = () => `
@@ -108,6 +109,10 @@ const bikeBody = (_name, feeds = []) => {
   return string;
 };
 
+const geofencingBody = () => `
+    geofencingZones: String!
+  `;
+
 const build = (name, superClass, body, feeds) => `
 type ${name}${superClass} implements ${superClass} {
   ${body(name, feeds)}
@@ -152,6 +157,8 @@ module.exports = (services) => {
           return build(name, 'SystemAlert', systemAlertBody, feeds);
         case FEED.vehicleTypes:
           return build(name, 'VehicleTypes', vehicleTypeBody, feeds);
+        case FEED.geofencingZones:
+          return build(name, 'GeofencingZone', geofencingBody, feeds);
         default:
           return '';
       }
@@ -227,6 +234,10 @@ module.exports = (services) => {
 
   interface VehicleTypes {
     ${vehicleTypeBody()}
+  }
+
+  interface GeofencingZone {
+    ${geofencingBody()}
   }
 
   ${dynamicString}

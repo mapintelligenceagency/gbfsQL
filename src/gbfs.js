@@ -8,6 +8,7 @@ const supportedFeeds = [
   FEED.freeBikeStatus,
   FEED.systemAlerts,
   FEED.vehicleTypes,
+  FEED.geofencingZones,
 ];
 
 const calculateVehicleBatteries = (vehicles, vehicleTypes) => vehicles.map((vehicle) => ({
@@ -98,6 +99,10 @@ class GBFS {
     return this.feedCache[FEED.vehicleTypes].vehicle_types;
   }
 
+  geofencingZones() {
+    return { geofencingZones: JSON.stringify(this.feedCache[FEED.geofencingZones].geofencingZones) };
+  }
+
   fullObject() {
     const object = {
       systemInformation: () => this.systemInformation(),
@@ -110,7 +115,14 @@ class GBFS {
       object.stations = ({ with_ids: withIds }) => this.stations(withIds);
     }
 
-    if (this.feeds[FEED.systemAlerts]) {
+    [FEED.systemAlerts, FEED.vehicleTypes, FEED.geofencingZones].forEach((feed) => {
+      // Get the key of the feed e.g. "systemAlerts" or "vehicleTypes"
+      const [key] = Object.entries(FEED).find(([, value]) => value === feed);
+      if (this.feeds[feed]) {
+        object[key] = () => this[key]();
+      }
+    });
+    /*    if (this.feeds[FEED.systemAlerts]) {
       object.systemAlerts = () => this.systemAlerts();
     }
 
@@ -118,6 +130,10 @@ class GBFS {
       object.vehicleTypes = () => this.vehicleTypes();
     }
 
+    if (this.feeds[FEED.geofencingZones]) {
+      object.geofencingZones = () => this.geofencingZones();
+    }
+*/
     return object;
   }
 
