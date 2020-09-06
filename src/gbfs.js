@@ -100,7 +100,7 @@ class GBFS {
   }
 
   geofencingZones() {
-    return { geofencingZones: JSON.stringify(this.feedCache[FEED.geofencingZones].geofencingZones) };
+    return JSON.stringify(this.feedCache[FEED.geofencingZones].geofencingZones);
   }
 
   fullObject() {
