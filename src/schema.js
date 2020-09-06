@@ -7,6 +7,7 @@ const queryType = {
   [FEED.freeBikeStatus]: (name) => `bikes(with_ids: [String]): [${name}Bike]`,
   [FEED.systemAlerts]: (name) => `systemAlerts: [${name}SystemAlert]`,
   [FEED.vehicleTypes]: (name) => `vehicleTypes: [${name}VehicleTypes]`,
+  [FEED.geofencingZones]: () => 'geofencingZones: String',
 };
 
 const vehicleTypeBody = () => `

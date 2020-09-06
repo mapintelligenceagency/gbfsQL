@@ -103,7 +103,6 @@ Promise.all(promises).then(() => {
     ...stationResolvers,
   };
 
-
   const schema = makeExecutableSchema({
     typeDefs,
     resolvers,

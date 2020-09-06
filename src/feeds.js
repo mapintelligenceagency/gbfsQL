@@ -9,4 +9,5 @@ module.exports = Object.freeze({
   systemPricingPlans: 'system_pricing_plans',
   systemAlerts: 'system_alerts',
   vehicleTypes: 'vehicle_types',
+  geofencingZones: 'geofencing_zones',
 });

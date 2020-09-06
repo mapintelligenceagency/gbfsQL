@@ -16,7 +16,7 @@ module.exports = {
     ecmaVersion: 2018,
   },
   rules: {
-    "max-len": ["error", 150],
-    "no-unused-vars": ["error", {"args": "after-used"}],
+    'max-len': ['error', 150],
+    'no-unused-vars': ['error', { args: 'after-used' }],
   },
 };
