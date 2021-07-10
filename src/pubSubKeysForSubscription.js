@@ -12,7 +12,7 @@ module.exports = (serviceKey, graphQLInformation) => {
     .selectionSet.selections[0]
     .selectionSet.selections
     .map((selection) => selection.name.value);
-  const keys = topLevelQueriesOnService.map((query) => KeyToFeed[query]).flat().map((feed) => `${serviceKey}.${feed}`);
-  logger.info(keys);
+  const keys = topLevelQueriesOnService.map((query) => KeyToFeed[query]).flat().filter((feed) => feed).map((feed) => `${serviceKey}.${feed}`);
+  logger.info('will subscribe to keys', keys);
   return keys;
 };

@@ -131,7 +131,7 @@ class GBFS {
     const status = allStatus.find(
       (s) => s.station_id.toString() === stationId.toString(),
     );
-    if (this.feedCache[FEED.vehicleTypes]) {
+    if (status && this.feedCache[FEED.vehicleTypes]) {
       status.vehicles = calculateVehicleBatteries(status.vehicles, this.feedCache[FEED.vehicleTypes].vehicle_types);
     }
     return status || null;
