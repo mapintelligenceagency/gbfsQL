@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@sentry/node": "5.22.3",
+    "@sentry/node": "6.8.0",
     "apollo-server": "^2.17.0",
     "apollo-server-express": "^2.17.0",
     "bunyan": "^1.8.14",
@@ -9,7 +9,7 @@
     "graphql": "^15.3.0",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "yargs": "^15.4.1"
+    "yargs": "^17.0.1"
   },
   "scripts": {
     "start": "node src/index.js",
