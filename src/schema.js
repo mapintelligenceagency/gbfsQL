@@ -74,7 +74,7 @@ const stationStatusBody = (_name, feeds = []) => {
   station_id: Int!
   num_bikes_available: Int!
   num_bikes_disabled: Int
-  num_docks_available: Int!
+  num_docks_available: Int
   num_docks_disabled: Int
   is_installed: Boolean!
   is_renting: Boolean!
