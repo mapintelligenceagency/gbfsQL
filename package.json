@@ -13,7 +13,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "serve": "nodemon -- --dashboard -v -s Velocity#https://nitro.openvelo.org/aachen/velocity/v2/gbfs.json -s Tier#https://nitro.openvelo.org/aachen/tier/v2/gbfs.json | bunyan",
+    "serve": "nodemon -- --dashboard -v -s Velocity#https://nitro.openvelo.org/aachen/velocity/v2/gbfs.json -s Tier#https://nitro.openvelo.org/aachen/tier/v2/gbfs.json -s EselAc#https://di.esel.ac/gbfs/gbfs.json | bunyan",
     "format": "eslint . --fix",
     "lint": "eslint . --max-warnings 0"
   },

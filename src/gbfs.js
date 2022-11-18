@@ -35,7 +35,7 @@ class GBFS {
         logger.error(`Request to ${this.autoDiscoveryURL} was not successful`);
         process.exit(1);
       }
-      const providedFeeds = gbfs.data.en.feeds.filter((feed) => supportedFeeds.includes(feed.name));
+      const providedFeeds = Object.values(gbfs.data)[0].feeds.filter((feed) => supportedFeeds.includes(feed.name));
 
       if (providedFeeds.length === 0) {
         logger.warning(`No services discovered for ${this.serviceKey}`);
